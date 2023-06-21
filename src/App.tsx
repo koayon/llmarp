@@ -1,122 +1,140 @@
-import React, { Component } from "react";
+import React, { Component, useEffect, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import { pipeline } from "@xenova/transformers";
+
+interface AppState {
+  currentIndex: number;
+  score: number;
+  lmScore: number; // score for the language model
+  currentGuess: string;
+  model: any;
+}
+
+interface AppProps {}
+
+// class App extends Component<AppProps, AppState> {
+//   sentence: string;
+//   words: string[];
+
+//   constructor(props: AppProps) {
+//     super(props);
+
+//     this.sentence = "React is a popular library for building user interfaces";
+//     this.words = this.sentence.split(" ");
+
+//     this.state = {
+//       currentIndex: 0,
+//       score: 0,
+//       lmScore: 0,
+//       currentGuess: "",
+//       model: null,
+//     };
+
+//     this.handleSubmit = this.handleSubmit.bind(this);
+//     this.handleInputChange = this.handleInputChange.bind(this);
+//   }
+
+//   async componentDidMount() {
+//     const model = await this.DefineModel();
+//     this.setState({ model });
+//   }
+
+//   handleInputChange = (event) => {
+//     this.setState({
+//       currentGuess: event.target.value,
+//     });
+//   };
+
+//   handleSubmit = async (event) => {
+//     event.preventDefault();
+
+//     if (this.state.model) {
+//       const inputTokens = await this.state.model.tokenizer.encode(
+//         this.words.slice(0, this.state.currentIndex).join(" ")
+//       );
+//       const predictedToken = await this.predictNextToken(
+//         inputTokens,
+//         this.state.model
+//       );
+//       const predictedWord = this.state.model.tokenizer.decode([predictedToken]);
+
+//       let newLmScore = this.state.lmScore;
+//       if (predictedWord === this.words[this.state.currentIndex]) {
+//         newLmScore++;
+//       }
+
+//       let newUserScore = this.state.score;
+//       if (this.state.currentGuess === this.words[this.state.currentIndex]) {
+//         newUserScore++;
+//       }
+
+//       this.setState((prevState) => ({
+//         score: newUserScore,
+//         currentIndex: prevState.currentIndex + 1,
+//         currentGuess: "",
+//         lmScore: newLmScore,
+//       }));
+//     }
+//   };
+
+//   async DefineModel() {
+//     const model = await pipeline("text-generation");
+//     return model;
+//   }
+
+//   async predictNextToken(inputTokens: number[], model: any) {
+//     const nextToken = await model.generate(inputTokens, {
+//       max_new_tokens: 1,
+//     });
+//     return nextToken;
+//   }
+
+//   render() {
+//     const isGuessDisabled = !this.state.currentGuess;
+//     return (
+//       <div>
+//         <h1>Guess the Next Word</h1>
+//         <p>
+//           Your Score: {this.state.score} / {this.state.currentIndex}
+//           <br></br>
+//           Transformer Score: {this.state.lmScore} / {this.state.currentIndex}
+//         </p>
+//         {
+//           <p>
+//             Sentence: {this.words.slice(0, this.state.currentIndex).join(" ")}
+//           </p>
+//         }
+//         <form onSubmit={this.handleSubmit}>
+//           <input
+//             type="text"
+//             onChange={this.handleInputChange}
+//             value={this.state.currentGuess}
+//           />
+//           <input type="submit" value="Guess" disabled={isGuessDisabled} />
+//         </form>
+//       </div>
+//     );
+//   }
+// }
+
+async function helloWorld() {
+  // Allocate a pipeline for sentiment-analysis
+  let pipe = await pipeline("sentiment-analysis");
+  let out = await pipe("I love transformers!");
+  // [{'label': 'POSITIVE', 'score': 0.999817686}]
+  return out;
+}
 
 class App extends Component {
-  sentence: string;
-  words: string[];
-
-  state = {
-    currentIndex: 0,
-    score: 0,
-    currentGuess: "",
-  };
-
-  model = DefineModel();
-
-  constructor(props) {
-    super(props);
-
-    this.sentence = "React is a popular library for building user interfaces";
-    this.words = this.sentence.split(" ");
-
-    this.handleSubmit = this.handleSubmit.bind(this);
+  async componentDidMount() {
+    console.log("Hello World");
+    const result = await helloWorld();
+    console.log(result);
   }
-
-  handleInputChange = (event) => {
-    this.setState({
-      currentGuess: event.target.value,
-    });
-  };
-
-  handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (this.state.currentGuess === this.words[this.state.currentIndex]) {
-      this.setState(() => ({
-        score: this.state.score + 1,
-        currentIndex: this.state.currentIndex + 1,
-        currentGuess: "",
-      }));
-    } else {
-      this.setState(() => ({
-        currentIndex: this.state.currentIndex + 1,
-        currentGuess: "",
-      }));
-    }
-  };
 
   render() {
-    return (
-      <div>
-        <h1>Guess the Next Word</h1>
-        <p>
-          Your Score: {this.state.score} / {this.state.currentIndex}
-          <br></br>
-          Transformer Score: {this.state.currentIndex} /{" "}
-          {this.state.currentIndex}
-        </p>
-        {
-          <p>
-            Sentence: {this.words.slice(0, this.state.currentIndex).join(" ")}
-          </p>
-        }
-        <form onSubmit={this.handleSubmit}>
-          <input
-            type="text"
-            onChange={this.handleInputChange}
-            value={this.state.currentGuess}
-          />
-          <input type="submit" value="Guess" />
-        </form>
-      </div>
-    );
+    return <div>App Component</div>;
   }
-}
-
-async function DefineModel() {
-  const model = await pipeline("text-generation");
-  return model;
-}
-
-async function TokenizeSentence(input_sentence: string, model: any) {
-  return await model.tokenizer.encode(input_sentence);
-}
-
-async function GenerateSentence(tokens: Array<number>, model: any) {
-  // const sentence = "Hello my name is Kola".split(" ");
-
-  const predictions: Array<number> = [];
-  const firstTokens: Array<Array<number>> = [];
-  for (let i = 0; i < tokens.length; i++) {
-    firstTokens.push(tokens.slice(0, i + 1));
-  }
-
-  for (let i = 0; i < firstTokens.length; i++) {
-    const output = await predictNextToken(firstTokens[i], model);
-    predictions.push(output);
-  }
-  return predictions;
-}
-
-async function predictNextToken(inputTokens: number[], model: any) {
-  // Load the model and the tokenizer
-
-  // Tokenize the input sentence and get the input IDs
-  // const inputs = await model.tokenizer.encode(sentence);
-
-  // Generate the next token
-  const nextToken = await model.model.generate(inputTokens, {
-    max_new_tokens: 1,
-  });
-
-  // Decode the output token back into text
-  // const nextToken = await model.tokenizer.decode(outputs[0], {
-  //   skip_special_tokens: true,
-  // });
-
-  return nextToken;
 }
 
 export default App;

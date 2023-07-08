@@ -117,24 +117,44 @@ interface AppProps {}
 //   }
 // }
 
-async function helloWorld() {
-  // Allocate a pipeline for sentiment-analysis
-  let pipe = await pipeline("sentiment-analysis");
-  let out = await pipe("I love transformers!");
-  // [{'label': 'POSITIVE', 'score': 0.999817686}]
-  return out;
+// async function helloWorld() {
+//   // Allocate a pipeline for sentiment-analysis
+//   let pipe = await pipeline("sentiment-analysis");
+//   let out = await pipe("I love transformers!");
+//   // [{'label': 'POSITIVE', 'score': 0.999817686}]
+//   return out;
+// }
+
+
+
+function App() {
+  // Create a reference to the worker object.
+  const worker = useRef(null);
+
+  // We use the `useEffect` hook to setup the worker as soon as the `App` component is mounted.
+  useEffect(() => {
+    if (!worker.current) {
+      // Create the worker if it does not yet exist.
+      worker.current = new Worker(new URL('./worker.js', import.meta.url), {
+          type: 'module'
+      });
+    }
+
+    // Create a callback function for messages from the worker thread.
+    const onMessageReceived = (e) => {
+      // TODO: Will fill in later
+    };
+
+    // Attach the callback function as an event listener.
+    worker.current.addEventListener('message', onMessageReceived);
+
+    // Define a cleanup function for when the component is unmounted.
+    return () => worker.current.removeEventListener('message', onMessageReceived);
+  });
+
+  return (
+    // TODO: Rest of our app goes here...
+  )
 }
 
-class App extends Component {
-  async componentDidMount() {
-    console.log("Hello World");
-    const result = await helloWorld();
-    console.log(result);
-  }
-
-  render() {
-    return <div>App Component</div>;
-  }
-}
-
-export default App;
+export default App

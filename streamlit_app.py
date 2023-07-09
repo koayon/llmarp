@@ -9,9 +9,9 @@ from funcs import (
 
 st.set_page_config(
     layout="wide",
-    page_title="🤖 LLMARP - You vs Transformer",
-    page_icon=":shark:",
-    menu_items={"About": "# LLMARP"},
+    page_title="LLM-ARP: You vs Transformer",
+    page_icon="🤖",
+    menu_items={"About": "# LLM-ARP: You vs Transformer"},
 )
 
 
@@ -32,16 +32,19 @@ if "word_index" not in st.session_state:
 
 words = st.session_state["sentence_tokens"]
 
-# UI
-
-st.title("🤖 LLMARP")
+st.title("🤖 LLM-ARP")
+st.text("Playing as a Language Model")
 with st.sidebar:
     st.write("Powered By OpenAI")
     reset_button, reveal_button = [st.button("Reset game"), st.button("Reveal text")]
     model_name = st.selectbox(
         label="Model",
-        options=["ada", "text-davinci-003"],
+        options=[
+            "text-davinci-003",
+            "ada",
+        ],
     )
+    st.image("assets/mechanical_hands.png")
 
 if reset_button:
     set_game()
@@ -74,8 +77,6 @@ if st.session_state.word_index < len(words):
         model_name = model_name or "ada"
         ai_word = get_ai_next_token(words[:word_index], model_name=model_name)
         is_ai_correct = check_token(ai_word, words[word_index])
-        print(ai_word.encode(), words[word_index].encode())
-        print(is_ai_correct)
 
         st.session_state.all_words.append(
             update_textbox(user_word, words[word_index], is_word_correct)

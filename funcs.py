@@ -15,7 +15,7 @@ def update_textbox(word, correct_word, is_correct):
         return f'<del style="color: red">{word}</del> {correct_word}'
 
 
-def get_ai_next_token(start_of_sentence, model_name="ada"):
+def get_ai_next_token(start_of_sentence, model_name="text-davinci-003"):
     if start_of_sentence:
         openai_response = openai.Completion.create(
             model=model_name,
@@ -31,8 +31,8 @@ def get_ai_next_token(start_of_sentence, model_name="ada"):
         return "The"
 
 
-def tokenize_sentence(sentence):
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+def tokenize_sentence(sentence, model_name="text-davinci-003"):
+    encoding = tiktoken.encoding_for_model(model_name)
     tokens = encoding.encode(sentence)
     try:
         tokens_strs = [
@@ -45,10 +45,10 @@ def tokenize_sentence(sentence):
     return tokens_strs
 
 
-def get_new_sentence_tokens():
+def get_new_sentence_tokens(model_name="text-davinci-003"):
     # sentence = "The quick brown hippopotamus jumps over the lazy dog"
     sentence = get_random_wiki_text()
-    sentence_token_strs = tokenize_sentence(sentence)
+    sentence_token_strs = tokenize_sentence(sentence, model_name)
     return sentence, sentence_token_strs
 
 

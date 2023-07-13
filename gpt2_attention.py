@@ -12,18 +12,9 @@ from typing import Dict, List, Tuple
 import torch
 from transformer_lens import HookedTransformer
 
-# Setup
-
-torch.set_grad_enabled(False)
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-# Looking at GPT-2 Small first
-model = HookedTransformer.from_pretrained("gpt2", device=device)
-model_cfg = model.cfg
-
 
 def get_all_predictions(
-    sequence: str, model: HookedTransformer = model, topk: int = 5
+    sequence: str, model: HookedTransformer, topk: int = 5
 ) -> Tuple[List[str], List[float], List[List[str]]]:
     "Return next guess for each substring, confidence in the guess and top 5 guesses"
     with torch.inference_mode():
@@ -32,7 +23,6 @@ def get_all_predictions(
     logits_most_to_least_likely, tokens_most_to_least_likely = logits.sort(
         -1, descending=True
     )  # batch (1), sequence length, vocab size
-    # print(logits_most_to_least_likely.shape)
 
     probs_most_to_least_likely = torch.softmax(logits_most_to_least_likely, dim=-1)[0]
     confidence_in_top_guesses = probs_most_to_least_likely[:, 0].numpy().tolist()
@@ -43,7 +33,7 @@ def get_all_predictions(
     top_predictions = tokens_most_to_least_likely[0, :, :topk]  # sequence length, topk
 
     topk_predictions = []
-    for i, token in enumerate(top_predictions):
+    for i, _token in enumerate(top_predictions):
         topk_predictions.append(model.to_str_tokens(top_predictions[i]))
 
     best_guesses = [guess[0] for guess in topk_predictions]
@@ -55,9 +45,7 @@ def get_all_predictions(
     return best_guesses, confidence_in_top_guesses, topk_predictions
 
 
-def attention_pattern(
-    sequence: str, model: HookedTransformer = model
-) -> Tuple[List, List]:
+def attention_pattern(sequence: str, model: HookedTransformer) -> Tuple[List, List]:
     with torch.inference_mode():
         _logits, cache = model.run_with_cache(sequence, remove_batch_dim=True)
     attention_patterns = [cache["pattern", layer, "attn"] for layer in range(12)]
@@ -65,13 +53,6 @@ def attention_pattern(
     str_tokens = model.to_str_tokens(sequence)
 
     return attention_patterns, str_tokens
-
-
-# attention_patterns, str_tokens = attention_pattern(sequence="1,2,3,4,")
-# # Showing the attention patterm
-# layer = 7
-# print(f"Layer {layer} attention patterns")
-# cv_show_attention(tokens=str_tokens, attention=attention_patterns[layer])
 
 
 @dataclass
@@ -106,9 +87,13 @@ class PredictionList:
         )
 
 
-def predict_with_attention(
-    sequence: str = "1,2,3,4,", model: HookedTransformer = model
-) -> PredictionList:
+def predict_with_attention(sequence: str = "1,2,3,4,") -> PredictionList:
+    # Setup
+
+    torch.set_grad_enabled(False)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = HookedTransformer.from_pretrained("gpt2", device=device)
+
     best_guesses, confidence_in_top_guesses, topk_predictions = get_all_predictions(
         sequence, model
     )

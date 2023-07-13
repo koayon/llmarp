@@ -3,7 +3,7 @@ import openai
 import streamlit as st
 import tiktoken
 
-from wiki import get_random_wiki_text
+from wiki import BACKUP_SENTENCE, get_random_wiki_text
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
@@ -31,8 +31,9 @@ def get_ai_next_token(start_of_sentence, model_name="text-davinci-003"):
         return "The"
 
 
-def tokenize_sentence(sentence, model_name="text-davinci-003"):
+def tokenize_sentence(sentence: str, model_name="text-davinci-003"):
     encoding = tiktoken.encoding_for_model(model_name)
+    # print(sentence)
     tokens = encoding.encode(sentence)
     try:
         tokens_strs = [
@@ -47,9 +48,16 @@ def tokenize_sentence(sentence, model_name="text-davinci-003"):
 
 def get_new_sentence_tokens(model_name="text-davinci-003"):
     # sentence = "The quick brown hippopotamus jumps over the lazy dog"
-    sentence = get_random_wiki_text()
+    sentence, wiki_url = get_random_wiki_text() or ("", None)
+    # print(sentence)
+    if not sentence:
+        sentence, wiki_url = (
+            BACKUP_SENTENCE,
+            "https://en.wikipedia.org/wiki/Ray_Solomonoff",
+        )
     sentence_token_strs = tokenize_sentence(sentence, model_name)
-    return sentence, sentence_token_strs
+
+    return sentence, sentence_token_strs, wiki_url
 
 
 def check_token(candidate_token, target_token):

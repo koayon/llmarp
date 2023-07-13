@@ -31,6 +31,7 @@ def set_game(model_name="text-davinci-003"):
     st.session_state["attention_mode"] = False
     st.session_state["wiki_url"] = url
     st.session_state["gpt2_prediction_list"] = None
+    st.session_state["layer"] = 0
 
 
 if "word_index" not in st.session_state:
@@ -125,7 +126,11 @@ if st.session_state.word_index < len(words):
 
                 prediction = st.session_state.gpt2_prediction_list[word_index]
 
-                layer = st.slider("Layer", 0, 11, 0)
+                st.session_state.layer = st.slider(
+                    "Layer", 0, 11, st.session_state.layer
+                )
+                layer = st.session_state.layer
+
                 st.write("Attention pattern for layer", layer)
                 attention_html = cv_show_attention(
                     tokens=prediction.str_tokens,

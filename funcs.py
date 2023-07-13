@@ -36,6 +36,7 @@ def tokenize_sentence(sentence: str, model_name="text-davinci-003"):
         model_name = "gpt2"
     encoding = tiktoken.encoding_for_model(model_name)
     # print(sentence)
+    # print(model_name)
     tokens = encoding.encode(sentence)
     try:
         tokens_strs = [

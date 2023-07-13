@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import torch
+from circuitsvis.attention import attention_patterns as cv_show_attention
 from transformer_lens import HookedTransformer
 
 
@@ -108,6 +109,51 @@ def predict_with_attention(sequence: str = "1,2,3,4,") -> PredictionList:
         str_tokens=str_tokens,
     )
     return prediction_list
+
+
+def show_attention(
+    tokens: List[str], attention_pattern: torch.Tensor, active_layer: int
+):
+    layer_htmls = []
+    for layer in range(12):
+        attention_html = cv_show_attention(
+            tokens=tokens,
+            attention=attention_pattern[layer],
+        ).show_code()
+        layer_htmls.append(
+            f'<div id="layer_{layer}" style="display:none;">{attention_html}</div></div>'
+        )
+    # print(layer_htmls[3])
+
+    # Slider to switch layers
+    layer_switch_html = f"""
+    Choose a layer to view
+    <input type="range" min="0" max="11" value="{active_layer}" id="layerSlider" oninput="switchLayer()">
+    <script>
+    function switchLayer() {{
+        var slider = document.getElementById("layerSlider");
+        var layer = slider.value;
+
+        // Hide all layers.
+        for (var i = 0; i <= 11; i++) {{
+            var layerDiv = document.getElementById("layer_" + i);
+            layerDiv.style.display = "none";
+            console.log("Hiding layer " + i);
+        }}
+
+        // Show the selected layer.
+        var selectedLayerDiv = document.getElementById("layer_" + layer);
+        selectedLayerDiv.style.display = "block";
+        console.log("Showing layer " + layer);
+    }}
+
+    // Call switchLayer on page load to show the initial layer.
+    window.onload = switchLayer;
+    </script>
+    """
+
+    final_html = layer_switch_html + " ".join(layer_htmls)
+    return final_html
 
 
 if __name__ == "__main__":

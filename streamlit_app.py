@@ -7,7 +7,7 @@ from funcs import (
     get_new_sentence_tokens,
     update_textbox,
 )
-from gpt2_attention import predict_with_attention
+from gpt2_attention import predict_with_attention, show_attention
 from text_copy import ATTENTION_CLICK, ATTENTION_EXPLAINER, INSTRUCTION_COPY
 
 st.set_page_config(
@@ -19,6 +19,9 @@ st.set_page_config(
 
 
 def set_game(model_name="text-davinci-003"):
+    # global input_word
+    # input_word = ""
+
     st.session_state["word_index"] = 0
     st.session_state["all_words"] = []
     st.session_state["ai_words"] = []
@@ -50,6 +53,9 @@ with st.sidebar:
             options=["text-davinci-003", "ada", "gpt2 with attention"],
         )
         submit_model = st.form_submit_button("Use this model")
+        st.write(
+            "Try using GPT-2 for a peek into attention! It might take a few seconds to load the model."
+        )
         if submit_model and model_name:
             set_game(model_name=model_name)
     st.image("assets/mechanical_hands.png")
@@ -96,7 +102,11 @@ if st.session_state.word_index < len(words):
 
         model_name = model_name or "ada"
         if model_name == "gpt2 with attention":
-            ai_word = st.session_state.gpt2_prediction_list[word_index].best_guess
+            ai_word = (
+                st.session_state.gpt2_prediction_list[word_index].best_guess
+                if word_index > 0
+                else "The"
+            )
         else:
             ai_word = get_ai_next_token(words[:word_index], model_name=model_name)
         is_ai_correct = check_token(ai_word, words[word_index])
@@ -126,17 +136,12 @@ if st.session_state.word_index < len(words):
 
                 prediction = st.session_state.gpt2_prediction_list[word_index]
 
-                st.session_state.layer = st.slider(
-                    "Layer", 0, 11, st.session_state.layer
-                )
-                layer = st.session_state.layer
-
-                st.write("Attention pattern for layer", layer)
-                attention_html = cv_show_attention(
+                attention_component_html = show_attention(
                     tokens=prediction.str_tokens,
-                    attention=prediction.attention_pattern[layer],
-                ).show_code()
-                st.components.v1.html(attention_html, height=400)  # type: ignore
+                    attention_pattern=prediction.attention_pattern,
+                    active_layer=st.session_state.layer,
+                )
+                st.components.v1.html(attention_component_html, height=400)  # type: ignore
 
                 st.subheader(ATTENTION_CLICK)
 

@@ -1,5 +1,4 @@
 import streamlit as st
-from circuitsvis.attention import attention_patterns as cv_show_attention
 
 from funcs import (
     check_token,

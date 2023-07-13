@@ -25,10 +25,13 @@ def set_game():
     st.session_state["user_score"] = 0
     st.session_state["ai_score"] = 0
     st.session_state["user_word"] = ""
-    sentence, sentence_tokens = get_new_sentence_tokens(model_name="text-davinci-003")
+    sentence, sentence_tokens, url = get_new_sentence_tokens(
+        model_name="text-davinci-003"
+    )
     st.session_state["sentence"] = sentence
     st.session_state["sentence_tokens"] = sentence_tokens
     st.session_state["attention_mode"] = False
+    st.session_state["wiki_url"] = url
 
 
 if "word_index" not in st.session_state:
@@ -37,10 +40,9 @@ if "word_index" not in st.session_state:
 words = st.session_state["sentence_tokens"]
 
 st.title("🤖 LLM-ARP")
-st.text("Playing as a Language Model")
+st.text("LLM Action Role-Playing")
 with st.sidebar:
     st.write("🧑 vs 🤖")
-    # st.write("Powered By OpenAI")
     reset_button, reveal_button = [st.button("Reset game"), st.button("Reveal text")]
     model_name = st.selectbox(
         label="Model",
@@ -48,7 +50,8 @@ with st.sidebar:
     )
     st.image("assets/mechanical_hands.png")
 
-if reset_button:
+    st.write("Powered by Wikipedia, OpenAI and CircuitVis")
+
     set_game()
 
 if reveal_button:
@@ -60,7 +63,7 @@ if st.session_state.attention_mode:
     )
 
 if st.session_state.word_index < len(words):
-    with st.expander("Instructions"):
+    with st.expander("How To Play"):
         st.write(INSTRUCTION_COPY)
 
     word_index = st.session_state["word_index"]
@@ -148,5 +151,24 @@ if st.session_state.word_index < len(words):
         )
 
 else:
-    st.write("Game over!")
+    st.info("Game over!")
+    st.subheader(f"The full text was from {st.session_state.wiki_url} and reads:")
     st.write(st.session_state.sentence)
+
+    with user_col:
+        user_component = st.chat_message("user")
+        user_score_message = f"User score {st.session_state.user_score} out of {st.session_state.word_index}"
+        user_component.write(user_score_message)
+        user_component.markdown(
+            " ".join(st.session_state.all_words), unsafe_allow_html=True
+        )
+
+    with ai_col:
+        ai_component = st.chat_message("assistant")
+        ai_score_message = (
+            f"AI score {st.session_state.ai_score} out of {st.session_state.word_index}"
+        )
+        ai_component.write(ai_score_message)
+        ai_component.markdown(
+            " ".join(st.session_state.ai_words), unsafe_allow_html=True
+        )

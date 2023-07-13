@@ -32,6 +32,8 @@ def get_ai_next_token(start_of_sentence, model_name="text-davinci-003"):
 
 
 def tokenize_sentence(sentence: str, model_name="text-davinci-003"):
+    if model_name == "gpt2 with attention":
+        model_name = "gpt2"
     encoding = tiktoken.encoding_for_model(model_name)
     # print(sentence)
     tokens = encoding.encode(sentence)

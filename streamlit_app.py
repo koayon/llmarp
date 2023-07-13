@@ -18,20 +18,19 @@ st.set_page_config(
 )
 
 
-def set_game():
+def set_game(model_name="text-davinci-003"):
     st.session_state["word_index"] = 0
     st.session_state["all_words"] = []
     st.session_state["ai_words"] = []
     st.session_state["user_score"] = 0
     st.session_state["ai_score"] = 0
     st.session_state["user_word"] = ""
-    sentence, sentence_tokens, url = get_new_sentence_tokens(
-        model_name="text-davinci-003"
-    )
+    sentence, sentence_tokens, url = get_new_sentence_tokens(model_name=model_name)
     st.session_state["sentence"] = sentence
     st.session_state["sentence_tokens"] = sentence_tokens
     st.session_state["attention_mode"] = False
     st.session_state["wiki_url"] = url
+    st.session_state["gpt2_prediction_list"] = None
 
 
 if "word_index" not in st.session_state:
@@ -44,23 +43,28 @@ st.text("LLM Action Role-Playing")
 with st.sidebar:
     st.write("🧑 vs 🤖")
     reset_button, reveal_button = [st.button("Reset game"), st.button("Reveal text")]
-    model_name = st.selectbox(
-        label="Model",
-        options=["text-davinci-003", "ada", "gpt2 with attention"],
-    )
+    with st.form("model_form"):
+        model_name = st.selectbox(
+            label="Model",
+            options=["text-davinci-003", "ada", "gpt2 with attention"],
+        )
+        submit_model = st.form_submit_button("Use this model")
+        if submit_model and model_name:
+            set_game(model_name=model_name)
     st.image("assets/mechanical_hands.png")
 
     st.write("Powered by Wikipedia, OpenAI and CircuitVis")
 
+if reset_button:
     set_game()
 
 if reveal_button:
     st.session_state.word_index = len(words)
 
-if st.session_state.attention_mode:
-    st.session_state["gpt2_prediction_list"] = predict_with_attention(
-        st.session_state.sentence
-    )
+if model_name == "gpt2 with attention":
+    st.session_state["gpt2_prediction_list"] = st.session_state[
+        "gpt2_prediction_list"
+    ] or predict_with_attention(st.session_state.sentence)
 
 if st.session_state.word_index < len(words):
     with st.expander("How To Play"):
@@ -106,9 +110,8 @@ if st.session_state.word_index < len(words):
         st.session_state["word_index"] += 1
         st.session_state["user_score"] += 1 if is_word_correct else 0
         st.session_state["ai_score"] += 1 if is_ai_correct else 0
-
-        with attention_container:
-            if st.session_state.attention_mode:
+        if st.session_state.attention_mode:
+            with attention_container:
                 # st.write(
                 #     st.session_state.gpt2_prediction_list[50].str_tokens,
                 # )

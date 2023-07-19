@@ -58,7 +58,11 @@ def get_new_sentence_tokens(model_name="text-davinci-003"):
             BACKUP_SENTENCE,
             "https://en.wikipedia.org/wiki/Ray_Solomonoff",
         )
-    sentence_token_strs = tokenize_sentence(sentence, model_name)
+    try:
+        sentence_token_strs = tokenize_sentence(sentence, model_name)
+    except Exception as e:
+        wiki_url = "https://en.wikipedia.org/wiki/Ray_Solomonoff"
+        sentence_token_strs = tokenize_sentence(BACKUP_SENTENCE, model_name)
 
     return sentence, sentence_token_strs, wiki_url
 
